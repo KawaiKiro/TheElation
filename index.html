@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>환락 계산기</title>
+    <title>캐릭터 종합 스탯 분석기</title>
     <style>
         body {
             font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
@@ -157,7 +157,7 @@
             </label>
             <label class="check-item">
                 <input type="checkbox" id="hgLc" onchange="calculate()">
-                효광 전광
+               효광 전광
             </label>
         </div>
         <div class="input-row">
@@ -293,24 +293,28 @@ function syncCalculate(type, side) {
 function calculate() {
     const hgOn = document.getElementById('hgBuffL').checked;
     const khOn = document.getElementById('khBuffL').checked;
-    const hgLcOn = document.getElementById('hgLc').checked; // 전광 체크 여부
+    const hgLcOn = document.getElementById('hgLc').checked;
 
     const gyuBuff = (hgOn ? 13.2 : 0) + (khOn ? 13.2 : 0);
     const sparkleBuff = (hgOn ? 12.84 : 0) + (khOn ? 12.84 : 0);
     const hgBuffVal = (hgOn ? 12.12 : 0) + (khOn ? 12.12 : 0);
 
-    const baseCritRate = parseFloat(document.getElementById('baseCritRate').value) || 0;
+    const baseCritRateInput = parseFloat(document.getElementById('baseCritRate').value) || 0;
     const baseCritDamage = parseFloat(document.getElementById('baseCritDamage').value) || 0;
     const laughPoint = parseFloat(document.getElementById('laughPoint').value) || 0;
     const isFull = document.getElementById('fullCard').checked;
     const rateGain = isFull ? 0.44 : 0.4;
     const damageGain = isFull ? 0.88 : 0.8;
     
-    const neededRate = Math.max(0, 100 - baseCritRate);
+    // [수정된 로직] 전광 10%를 기본 치확에 먼저 합산
+    let initialCritRate = baseCritRateInput + (hgLcOn ? 10 : 0);
+    
+    // 합산된 치확을 기준으로 100%까지 필요한 수치 계산
+    const neededRate = Math.max(0, 100 - initialCritRate);
     const pointsForMax = neededRate / rateGain;
     document.getElementById('neededPointsText').innerText = pointsForMax.toFixed(2);
 
-    let finalRate = baseCritRate;
+    let finalRate = initialCritRate;
     let finalDamage = baseCritDamage;
 
     // 포인트 정산
@@ -319,11 +323,6 @@ function calculate() {
     } else {
         finalRate = 100;
         finalDamage += ((laughPoint - pointsForMax) * damageGain);
-    }
-
-    // [전광 효과 적용] 최종 치확에 10% 추가
-    if (hgLcOn) {
-        finalRate += 10;
     }
 
     const finalSpeedGyu = (parseFloat(document.getElementById('speed_gyu_L').value) || 0) + gyuBuff;
