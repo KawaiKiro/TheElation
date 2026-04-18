@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>환락 계산기</title>
+    <style>
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), 
+                              url('https://images.unsplash.com/photo-1614850523296-e8c041de43a8?q=80&w=2070&auto=format&fit=crop'); 
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            padding: 2rem;
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            width: 100%;
+            max-width: 480px;
+        }
+
+        .tab-wrapper {
+            display: flex;
+            background: #edf2f7;
+            padding: 5px;
+            border-radius: 16px;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+        .tab-item {
+            flex: 1;
+            text-align: center;
+            padding: 12px 0;
+            cursor: pointer;
+            z-index: 1;
+            font-weight: bold;
+            color: #718096;
+            transition: color 0.3s;
+        }
+        .tab-item.active { color: white; }
+        .tab-slider {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            width: calc(50% - 5px);
+            height: calc(100% - 10px);
+            background: #3182ce;
+            border-radius: 12px;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .tab-wrapper[data-active="right"] .tab-slider { transform: translateX(100%); }
+
+        .content-section { display: none; }
+        .content-section.active { display: block; }
+
+        h2 { text-align: center; color: #1a202c; margin-bottom: 1.2rem; margin-top: 0; font-size: 1.2rem; }
+
+        .option-container {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 14px;
+            margin-bottom: 1rem;
+            border: 1px solid #e2e8f0;
+        }
+        .check-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            padding: 5px 0;
+            color: #2d3748;
+            font-weight: 600;
+        }
+        .check-item input { width: 17px; height: 17px; cursor: pointer; }
+
+        .input-row { display: flex; gap: 10px; margin-bottom: 0.8rem; }
+        .input-group { flex: 1; }
+        label { display: block; margin-bottom: 0.4rem; font-size: 0.8rem; color: #4a5568; font-weight: 600; }
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            box-sizing: border-box;
+            font-size: 0.95rem;
+        }
+
+        .info-box {
+            background-color: #ebf8ff;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            border-left: 4px solid #3182ce;
+            font-size: 0.8rem;
+            color: #2c5282;
+        }
+
+        .result-area {
+            background: rgba(247, 250, 252, 0.8);
+            padding: 1rem;
+            border-radius: 16px;
+            border-top: 2px dashed #cbd5e0;
+            margin-top: 1rem;
+        }
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.6rem;
+            align-items: center;
+        }
+        
+        .label-text { font-weight: 600; color: #1a202c; font-size: 0.9rem; }
+        .value { font-size: 1.2rem; font-weight: 800; color: #3182ce; }
+        .highlight { color: #e53e3e; }
+        .speed-value { color: #805ad5; font-size: 1.1rem; }
+        .joy-value { color: #f6ad55; }
+        
+        #res-gyu-only { display: flex; }
+        #res-party-speeds { display: none; flex-direction: column; gap: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="tab-wrapper" id="tabWrapper" data-active="left">
+        <div class="tab-slider"></div>
+        <div class="tab-item active" onclick="switchTab('left')">뀨랑 계산기</div>
+        <div class="tab-item" onclick="switchTab('right')">환락 속도 계산기</div>
+    </div>
+
+    <div id="section-left" class="content-section active">
+        <h2>뀨랑 계산기</h2>
+        <div class="option-container">
+            <label class="check-item" style="color:#3182ce;">
+                <input type="checkbox" id="fullCard" onchange="calculate()">
+                6돌
+            </label>
+            <label class="check-item">
+                <input type="checkbox" id="hgBuffL" onchange="syncCalculate('hg', 'L')">
+                효광 2돌
+            </label>
+            <label class="check-item">
+                <input type="checkbox" id="khBuffL" onchange="syncCalculate('kh', 'L')">
+                곽향 1돌
+            </label>
+            <label class="check-item">
+                <input type="checkbox" id="hgLc" onchange="calculate()">
+                효광 전광
+            </label>
+        </div>
+        <div class="input-row">
+            <div class="input-group">
+                <label>기본 치확 (%)</label>
+                <input type="number" id="baseCritRate" value="0" step="0.1" oninput="calculate()">
+            </div>
+            <div class="input-group">
+                <label>기본 치피 (%)</label>
+                <input type="number" id="baseCritDamage" value="0" step="0.1" oninput="calculate()">
+            </div>
+        </div>
+        <div class="input-row">
+            <div class="input-group">
+                <label>뀨랑 속도</label>
+                <input type="number" id="speed_gyu_L" value="0" step="0.1" oninput="syncCalculate('speed', 'L')">
+            </div>
+            <div class="input-group">
+                <label>웃음포인트</label>
+                <input type="number" id="laughPoint" value="0" oninput="calculate()">
+            </div>
+        </div>
+        <div class="info-box">
+            치확 100% 필요 포인트: <span id="neededPointsText" style="font-weight:bold; color:#38a169;">250.00</span>
+        </div>
+    </div>
+
+    <div id="section-right" class="content-section">
+        <h2>환락 속도 계산기</h2>
+        <div class="option-container">
+            <label class="check-item">
+                <input type="checkbox" id="hgBuffR" onchange="syncCalculate('hg', 'R')">
+                효광 2돌
+            </label>
+            <label class="check-item">
+                <input type="checkbox" id="khBuffR" onchange="syncCalculate('kh', 'R')">
+                곽향 1돌
+            </label>
+        </div>
+        <div class="input-row">
+            <div class="input-group">
+                <label>뀨랑 속도</label>
+                <input type="number" id="speed_gyu_R" value="0" step="0.1" oninput="syncCalculate('speed', 'R')">
+            </div>
+            <div class="input-group">
+                <label>스파클 속도</label>
+                <input type="number" id="speed_sparkle" value="0" step="0.1" oninput="calculate()">
+            </div>
+        </div>
+        <div class="input-row">
+            <div class="input-group">
+                <label>효광 속도</label>
+                <input type="number" id="speed_hg" value="0" step="0.1" oninput="calculate()">
+            </div>
+            <div class="input-group" style="visibility: hidden;">
+                <label>공백</label>
+                <input type="number">
+            </div>
+        </div>
+    </div>
+
+    <div class="result-area">
+        <div id="res-gyu-only">
+            <div style="width: 100%;">
+                <div class="result-item">
+                    <span class="label-text">최종 치확 / 치피</span>
+                    <span class="value"><span id="resRate">0.0</span> / <span id="resDamage" class="highlight">0.0</span></span>
+                </div>
+                <div class="result-item">
+                    <span class="label-text">뀨랑 최종 속도</span>
+                    <span class="value speed-value" id="resSpeedGyuL">0.0</span>
+                </div>
+                <div class="result-item">
+                    <span class="label-text">추가 환락도</span>
+                    <span class="value joy-value" id="resJoy">0%</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="res-party-speeds">
+            <div style="border-bottom: 1px solid #e2e8f0; margin-bottom: 10px; padding-bottom: 5px; font-weight: bold; color: #4a5568; font-size: 0.85rem;">파티 최종 속도 현황</div>
+            <div class="result-item"><span class="label-text">뀨랑</span> <span class="value speed-value" id="ps_gyu">0.0</span></div>
+            <div class="result-item"><span class="label-text">스파클</span> <span class="value speed-value" id="ps_sparkle">0.0</span></div>
+            <div class="result-item"><span class="label-text">효광</span> <span class="value speed-value" id="ps_hg">0.0</span></div>
+            <div class="result-item" style="border-top: 1px dashed #cbd5e0; padding-top: 8px; margin-top: 5px;">
+                <span class="label-text" style="color: #e53e3e;">아하</span> 
+                <span class="value speed-value" id="ps_aha" style="color: #e53e3e;">0.0</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function switchTab(side) {
+    const wrapper = document.getElementById('tabWrapper');
+    const tabs = document.querySelectorAll('.tab-item');
+    const secLeft = document.getElementById('section-left');
+    const secRight = document.getElementById('section-right');
+    const resGyuOnly = document.getElementById('res-gyu-only');
+    const resPartySpeeds = document.getElementById('res-party-speeds');
+    
+    wrapper.setAttribute('data-active', side);
+    tabs.forEach(t => t.classList.remove('active'));
+    
+    if(side === 'left') {
+        tabs[0].classList.add('active');
+        secLeft.classList.add('active');
+        secRight.classList.remove('active');
+        resGyuOnly.style.display = 'flex';
+        resPartySpeeds.style.display = 'none';
+    } else {
+        tabs[1].classList.add('active');
+        secRight.classList.add('active');
+        secLeft.classList.remove('active');
+        resGyuOnly.style.display = 'none';
+        resPartySpeeds.style.display = 'flex';
+    }
+}
+
+function syncCalculate(type, side) {
+    if (type === 'hg' || type === 'kh') {
+        const val = document.getElementById(type + 'Buff' + side).checked;
+        document.getElementById(type + 'BuffL').checked = val;
+        document.getElementById(type + 'BuffR').checked = val;
+    } else if (type === 'speed') {
+        const val = document.getElementById('speed_gyu_' + side).value;
+        document.getElementById('speed_gyu_L').value = val;
+        document.getElementById('speed_gyu_R').value = val;
+    }
+    calculate();
+}
+
+function calculate() {
+    const hgOn = document.getElementById('hgBuffL').checked;
+    const khOn = document.getElementById('khBuffL').checked;
+    const hgLcOn = document.getElementById('hgLc').checked; // 전광 체크 여부
+
+    const gyuBuff = (hgOn ? 13.2 : 0) + (khOn ? 13.2 : 0);
+    const sparkleBuff = (hgOn ? 12.84 : 0) + (khOn ? 12.84 : 0);
+    const hgBuffVal = (hgOn ? 12.12 : 0) + (khOn ? 12.12 : 0);
+
+    const baseCritRate = parseFloat(document.getElementById('baseCritRate').value) || 0;
+    const baseCritDamage = parseFloat(document.getElementById('baseCritDamage').value) || 0;
+    const laughPoint = parseFloat(document.getElementById('laughPoint').value) || 0;
+    const isFull = document.getElementById('fullCard').checked;
+    const rateGain = isFull ? 0.44 : 0.4;
+    const damageGain = isFull ? 0.88 : 0.8;
+    
+    const neededRate = Math.max(0, 100 - baseCritRate);
+    const pointsForMax = neededRate / rateGain;
+    document.getElementById('neededPointsText').innerText = pointsForMax.toFixed(2);
+
+    let finalRate = baseCritRate;
+    let finalDamage = baseCritDamage;
+
+    // 포인트 정산
+    if (laughPoint <= pointsForMax) {
+        finalRate += (laughPoint * rateGain);
+    } else {
+        finalRate = 100;
+        finalDamage += ((laughPoint - pointsForMax) * damageGain);
+    }
+
+    // [전광 효과 적용] 최종 치확에 10% 추가
+    if (hgLcOn) {
+        finalRate += 10;
+    }
+
+    const finalSpeedGyu = (parseFloat(document.getElementById('speed_gyu_L').value) || 0) + gyuBuff;
+    let extraJoy = 0;
+    if (finalSpeedGyu > 160) extraJoy = (finalSpeedGyu - 160) * 2;
+
+    const fsSparkle = (parseFloat(document.getElementById('speed_sparkle').value) || 0) + sparkleBuff;
+    const fsHg = (parseFloat(document.getElementById('speed_hg').value) || 0) + hgBuffVal;
+
+    let speeds = [finalSpeedGyu, fsSparkle, fsHg].sort((a, b) => b - a);
+    const fsAha = 80 + (speeds[0] / 5) + (speeds[1] / 10) + (speeds[2] / 20);
+
+    document.getElementById('resRate').innerText = finalRate.toFixed(1) + '%';
+    document.getElementById('resDamage').innerText = finalDamage.toFixed(1) + '%';
+    document.getElementById('resSpeedGyuL').innerText = finalSpeedGyu.toFixed(1);
+    document.getElementById('resJoy').innerText = extraJoy.toFixed(1) + '%';
+
+    document.getElementById('ps_gyu').innerText = finalSpeedGyu.toFixed(1);
+    document.getElementById('ps_sparkle').innerText = fsSparkle.toFixed(1);
+    document.getElementById('ps_hg').innerText = fsHg.toFixed(1);
+    document.getElementById('ps_aha').innerText = fsAha.toFixed(1);
+}
+
+calculate();
+</script>
+
+</body>
+</html>
