@@ -27,7 +27,7 @@
             border-radius: 24px;
             box-shadow: 0 20px 50px rgba(0,0,0,0.5);
             width: 100%;
-            max-width: 480px;
+            max-width: 520px;
         }
 
         .tab-wrapper {
@@ -66,24 +66,28 @@
 
         h2 { text-align: center; color: #1a202c; margin-bottom: 1.2rem; margin-top: 0; font-size: 1.2rem; }
 
-        .option-container {
+        .option-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 8px;
             background: #f8fafc;
             padding: 15px;
             border-radius: 14px;
             margin-bottom: 1rem;
             border: 1px solid #e2e8f0;
         }
+
         .check-item {
             display: flex;
             align-items: center;
-            gap: 10px;
-            font-size: 0.9rem;
+            gap: 8px;
+            font-size: 0.85rem;
             cursor: pointer;
-            padding: 5px 0;
+            padding: 4px 0;
             color: #2d3748;
             font-weight: 600;
         }
-        .check-item input { width: 17px; height: 17px; cursor: pointer; }
+        .check-item input { width: 16px; height: 16px; cursor: pointer; flex-shrink: 0; }
 
         .input-row { display: flex; gap: 10px; margin-bottom: 0.8rem; }
         .input-group { flex: 1; }
@@ -105,6 +109,7 @@
             border-left: 4px solid #3182ce;
             font-size: 0.8rem;
             color: #2c5282;
+            line-height: 1.6;
         }
 
         .result-area {
@@ -143,27 +148,43 @@
 
     <div id="section-left" class="content-section active">
         <h2>뀨랑 계산기</h2>
-        <div class="option-container">
-            <label class="check-item" style="color:#3182ce;">
-                <input type="checkbox" id="fullCard" onchange="calculate()">
-                6돌
-            </label>
-            <label class="check-item">
-                <input type="checkbox" id="hgBuffL" onchange="syncCalculate('hg', 'L')">
-                효광 2돌
-            </label>
-            <label class="check-item">
-                <input type="checkbox" id="khBuffL" onchange="syncCalculate('kh', 'L')">
-                곽향 1돌
-            </label>
-            <label class="check-item">
-                <input type="checkbox" id="hiBuffL" onchange="syncCalculate('hi', 'L')">
-                히아킨 2돌
-            </label>
-            <label class="check-item">
-                <input type="checkbox" id="hgLc" onchange="calculate()">
-                효광 전광
-            </label>
+        <div class="option-grid">
+            <div class="column-left">
+                <label class="check-item" style="color:#3182ce;">
+                    <input type="checkbox" id="fullCard" onchange="calculate()">
+                    6돌
+                </label>
+                <label class="check-item">
+                    <input type="checkbox" id="sp1" onchange="handleSparkle(1)">
+                    스파키 1돌
+                </label>
+                <label class="check-item">
+                    <input type="checkbox" id="sp2" onchange="handleSparkle(2)">
+                    스파키 2돌
+                </label>
+                <label class="check-item">
+                    <input type="checkbox" id="hg1" onchange="calculate()">
+                    효광 1돌
+                </label>
+                <label class="check-item">
+                    <input type="checkbox" id="hgBuffL" onchange="syncCalculate('hg', 'L')">
+                    효광 2돌
+                </label>
+            </div>
+            <div class="column-right">
+                <label class="check-item">
+                    <input type="checkbox" id="khBuffL" onchange="syncCalculate('kh', 'L')">
+                    곽향 1돌
+                </label>
+                <label class="check-item">
+                    <input type="checkbox" id="hiBuffL" onchange="syncCalculate('hi', 'L')">
+                    히아킨 2돌
+                </label>
+                <label class="check-item">
+                    <input type="checkbox" id="hgLc" onchange="calculate()">
+                    효광 전광
+                </label>
+            </div>
         </div>
         <div class="input-row">
             <div class="input-group">
@@ -180,20 +201,16 @@
                 <label>뀨랑 속도</label>
                 <input type="number" id="speed_gyu_L" value="0" step="0.1" oninput="syncCalculate('speed', 'L')">
             </div>
-            <div class="input-group">
-                <label>웃음포인트</label>
-                <input type="number" id="laughPoint" value="0" oninput="calculate()">
-            </div>
         </div>
         <div class="info-box">
-            치확 100% 필요 포인트: <span id="neededPointsText" style="font-weight:bold; color:#38a169;">250.00</span>
+            치확 100% 필요 포인트: <span id="neededPointsText" style="font-weight:bold; color:#38a169;">250.00</span><br>
+            뀨랑 변신 전 포인트: <span id="beforeTransformPoints" style="font-weight:bold; color:#e53e3e;">60</span>
         </div>
     </div>
 
     <div id="section-right" class="content-section">
-        <h2></h2>
-        <div class="option-container">
-            <label class="check-item">
+        <h2>환락 속도 계산기</h2>
+        <div class="option-grid" style="display: block;"> <label class="check-item">
                 <input type="checkbox" id="hgBuffR" onchange="syncCalculate('hg', 'R')">
                 효광 2돌
             </label>
@@ -201,7 +218,7 @@
                 <input type="checkbox" id="khBuffR" onchange="syncCalculate('kh', 'R')">
                 곽향 1돌
             </label>
-            <label class="check-item">
+            <label class="check-item" style="color: #9f7aea;">
                 <input type="checkbox" id="hiBuffR" onchange="syncCalculate('hi', 'R')">
                 히아킨 2돌
             </label>
@@ -222,7 +239,6 @@
                 <input type="number" id="speed_hg" value="0" step="0.1" oninput="calculate()">
             </div>
             <div class="input-group" style="visibility: hidden;">
-                <label>공백</label>
                 <input type="number">
             </div>
         </div>
@@ -251,7 +267,7 @@
         </div>
 
         <div id="res-party-speeds">
-            <div style="border-bottom: 1px solid #e2e8f0; margin-bottom: 10px; padding-bottom: 5px; font-weight: bold; color: #4a5568; font-size: 0.85rem;">파티 최종 속도</div>
+            <div style="border-bottom: 1px solid #e2e8f0; margin-bottom: 10px; padding-bottom: 5px; font-weight: bold; color: #4a5568; font-size: 0.85rem;">파티 최종 속도 현황</div>
             <div class="result-item"><span class="label-text">뀨랑</span> <span class="value speed-value" id="ps_gyu">0.0</span></div>
             <div class="result-item"><span class="label-text">스파키</span> <span class="value speed-value" id="ps_sparkle">0.0</span></div>
             <div class="result-item"><span class="label-text">효광</span> <span class="value speed-value" id="ps_hg">0.0</span></div>
@@ -264,6 +280,18 @@
 </div>
 
 <script>
+function handleSparkle(level) {
+    const sp1 = document.getElementById('sp1');
+    const sp2 = document.getElementById('sp2');
+    if (level === 2 && sp2.checked) {
+        sp1.checked = false;
+        sp1.disabled = true;
+    } else if (level === 2 && !sp2.checked) {
+        sp1.disabled = false;
+    }
+    calculate();
+}
+
 function switchTab(side) {
     const wrapper = document.getElementById('tabWrapper');
     const tabs = document.querySelectorAll('.tab-item');
@@ -295,6 +323,15 @@ function syncCalculate(type, side) {
         const val = document.getElementById(type + 'Buff' + side).checked;
         document.getElementById(type + 'BuffL').checked = val;
         document.getElementById(type + 'BuffR').checked = val;
+        if (type === 'hg') {
+            const hg1 = document.getElementById('hg1');
+            if (val) {
+                hg1.checked = false;
+                hg1.disabled = true;
+            } else {
+                hg1.disabled = false;
+            }
+        }
     } else if (type === 'speed') {
         const val = document.getElementById('speed_gyu_' + side).value;
         document.getElementById('speed_gyu_L').value = val;
@@ -304,21 +341,27 @@ function syncCalculate(type, side) {
 }
 
 function calculate() {
-    // 탭별 데이터 로드
     const hgOn = document.getElementById('hgBuffL').checked;
     const khOn = document.getElementById('khBuffL').checked;
     const hiOn = document.getElementById('hiBuffL').checked;
     const hgLcOn = document.getElementById('hgLc').checked;
+    const sp1On = document.getElementById('sp1').checked;
+    const sp2On = document.getElementById('sp2').checked;
+    const hg1On = document.getElementById('hg1').checked;
+    
+    let laughPoint = 60;
+    if (sp2On) laughPoint += 21;
+    else if (sp1On) laughPoint += 5;
+    if (hgOn || hg1On) laughPoint += 20;
+    
+    document.getElementById('beforeTransformPoints').innerText = laughPoint;
 
-    // 1. 캐릭터별 속도 증가치 설정
     const gyuBuff = (hgOn ? 13.2 : 0) + (khOn ? 13.2 : 0) + (hiOn ? 33 : 0);
     const sparkleBuff = (hgOn ? 12.84 : 0) + (khOn ? 12.84 : 0) + (hiOn ? 32.1 : 0);
     const hgBuffVal = (hgOn ? 12.12 : 0) + (khOn ? 12.12 : 0) + (hiOn ? 30.3 : 0);
 
-    // 2. 뀨랑 치명타 & 아하 데미지 계산
     const baseCritRateInput = parseFloat(document.getElementById('baseCritRate').value) || 0;
     const baseCritDamage = parseFloat(document.getElementById('baseCritDamage').value) || 0;
-    const laughPoint = parseFloat(document.getElementById('laughPoint').value) || 0;
     const isFull = document.getElementById('fullCard').checked;
     const rateGain = isFull ? 0.44 : 0.4;
     const damageGain = isFull ? 0.88 : 0.8;
@@ -337,10 +380,8 @@ function calculate() {
         finalDamage += ((laughPoint - pointsForMax) * damageGain);
     }
 
-    // 아하 데미지 증가량: (5 * 포인트) / (240 + 포인트)
-    const ahaDmgIncrease = ((5 * laughPoint) / (240 + laughPoint))*100;
+    const ahaDmgIncrease = (5 * laughPoint) / (240 + laughPoint);
 
-    // 3. 파티 최종 속도 계산
     const finalSpeedGyu = (parseFloat(document.getElementById('speed_gyu_L').value) || 0) + gyuBuff;
     const fsSparkle = (parseFloat(document.getElementById('speed_sparkle').value) || 0) + sparkleBuff;
     const fsHg = (parseFloat(document.getElementById('speed_hg').value) || 0) + hgBuffVal;
@@ -348,16 +389,14 @@ function calculate() {
     let extraJoy = 0;
     if (finalSpeedGyu > 160) extraJoy = (finalSpeedGyu - 160) * 2;
 
-    // 아하 최종 속도 (80 + 1위/5 + 2위/10 + 3위/20)
     let speeds = [finalSpeedGyu, fsSparkle, fsHg].sort((a, b) => b - a);
     const fsAha = 80 + (speeds[0] / 5) + (speeds[1] / 10) + (speeds[2] / 20);
 
-    // 4. 결과 출력 반영
     document.getElementById('resRate').innerText = finalRate.toFixed(1) + '%';
     document.getElementById('resDamage').innerText = finalDamage.toFixed(1) + '%';
     document.getElementById('resSpeedGyuL').innerText = finalSpeedGyu.toFixed(1);
     document.getElementById('resJoy').innerText = extraJoy.toFixed(1) + '%';
-    document.getElementById('resAhaDmg').innerText = ahaDmgIncrease.toFixed(2) + '%';
+    document.getElementById('resAhaDmg').innerText = (ahaDmgIncrease * 100).toFixed(2) + '%';
 
     document.getElementById('ps_gyu').innerText = finalSpeedGyu.toFixed(1);
     document.getElementById('ps_sparkle').innerText = fsSparkle.toFixed(1);
@@ -367,6 +406,5 @@ function calculate() {
 
 calculate();
 </script>
-
 </body>
 </html>
