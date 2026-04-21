@@ -118,6 +118,7 @@
             border-radius: 16px;
             border-top: 2px dashed #cbd5e0;
             margin-top: 1rem;
+            min-height: 120px;
         }
         .result-item {
             display: flex;
@@ -134,7 +135,7 @@
         .aha-value { color: #ed64a6; }
         
         #res-gyu-only { display: flex; }
-        #res-party-speeds { display: none; flex-direction: column; gap: 5px; }
+        #res-party-speeds { display: none; flex-direction: column; gap: 5px; width: 100%; }
     </style>
 </head>
 <body>
@@ -147,12 +148,12 @@
     </div>
 
     <div id="section-left" class="content-section active">
-        <h2>뀨랑 계산기</h2>
+        <h2>종합 스탯 설정</h2>
         <div class="option-grid">
             <div class="column-left">
                 <label class="check-item" style="color:#3182ce;">
                     <input type="checkbox" id="fullCard" onchange="calculate()">
-                    6돌
+                    은랑 6돌
                 </label>
                 <label class="check-item">
                     <input type="checkbox" id="sp1" onchange="handleSparkle(1)">
@@ -209,8 +210,9 @@
     </div>
 
     <div id="section-right" class="content-section">
-        <h2>환락 속도 계산기</h2>
-        <div class="option-grid" style="display: block;"> <label class="check-item">
+        <h2>파티 속도 설정</h2>
+        <div class="option-grid" style="grid-template-columns: 1fr;">
+            <label class="check-item">
                 <input type="checkbox" id="hgBuffR" onchange="syncCalculate('hg', 'R')">
                 효광 2돌
             </label>
@@ -218,7 +220,7 @@
                 <input type="checkbox" id="khBuffR" onchange="syncCalculate('kh', 'R')">
                 곽향 1돌
             </label>
-            <label class="check-item">
+                <label class="check-item">
                 <input type="checkbox" id="hiBuffR" onchange="syncCalculate('hi', 'R')">
                 히아킨 2돌
             </label>
@@ -256,8 +258,12 @@
                     <span class="value speed-value" id="resSpeedGyuL">0.0</span>
                 </div>
                 <div class="result-item">
-                    <span class="label-text">추가 환락도</span>
+                    <span class="label-text">추가 환락도 (160↑)</span>
                     <span class="value joy-value" id="resJoy">0%</span>
+                </div>
+                <div class="result-item">
+                    <span class="label-text">아하 데미지 증가량</span>
+                    <span class="value aha-value" id="resAhaDmg">0.00%</span>
                 </div>
             </div>
         </div>
@@ -312,6 +318,7 @@ function switchTab(side) {
         resGyuOnly.style.display = 'none';
         resPartySpeeds.style.display = 'flex';
     }
+    calculate(); // 탭 전환 시 즉시 계산
 }
 
 function syncCalculate(type, side) {
@@ -321,12 +328,8 @@ function syncCalculate(type, side) {
         document.getElementById(type + 'BuffR').checked = val;
         if (type === 'hg') {
             const hg1 = document.getElementById('hg1');
-            if (val) {
-                hg1.checked = false;
-                hg1.disabled = true;
-            } else {
-                hg1.disabled = false;
-            }
+            if (val) { hg1.checked = false; hg1.disabled = true; } 
+            else { hg1.disabled = false; }
         }
     } else if (type === 'speed') {
         const val = document.getElementById('speed_gyu_' + side).value;
@@ -337,6 +340,7 @@ function syncCalculate(type, side) {
 }
 
 function calculate() {
+    // 1. 체크박스 상태 확인
     const hgOn = document.getElementById('hgBuffL').checked;
     const khOn = document.getElementById('khBuffL').checked;
     const hiOn = document.getElementById('hiBuffL').checked;
@@ -345,17 +349,18 @@ function calculate() {
     const sp2On = document.getElementById('sp2').checked;
     const hg1On = document.getElementById('hg1').checked;
     
+    // 2. 포인트 계산
     let laughPoint = 60;
-    if (sp2On) laughPoint += 21;
-    else if (sp1On) laughPoint += 5;
+    if (sp2On) laughPoint += 21; else if (sp1On) laughPoint += 5;
     if (hgOn || hg1On) laughPoint += 20;
-    
     document.getElementById('beforeTransformPoints').innerText = laughPoint;
 
+    // 3. 버프값 설정 (고정 수치)
     const gyuBuff = (hgOn ? 13.2 : 0) + (khOn ? 13.2 : 0) + (hiOn ? 33 : 0);
     const sparkleBuff = (hgOn ? 12.84 : 0) + (khOn ? 12.84 : 0) + (hiOn ? 32.1 : 0);
     const hgBuffVal = (hgOn ? 12.12 : 0) + (khOn ? 12.12 : 0) + (hiOn ? 30.3 : 0);
 
+    // 4. 뀨랑 치확/치피 및 아하 데미지 계산
     const baseCritRateInput = parseFloat(document.getElementById('baseCritRate').value) || 0;
     const baseCritDamage = parseFloat(document.getElementById('baseCritDamage').value) || 0;
     const isFull = document.getElementById('fullCard').checked;
@@ -364,42 +369,46 @@ function calculate() {
     
     let initialCritRate = baseCritRateInput + (hgLcOn ? 10 : 0);
     const neededRate = Math.max(0, 100 - initialCritRate);
-    const pointsForMax = neededRate / rateGain;
-    document.getElementById('neededPointsText').innerText = pointsForMax.toFixed(2);
+    document.getElementById('neededPointsText').innerText = (neededRate / rateGain).toFixed(2);
 
     let finalRate = initialCritRate;
     let finalDamage = baseCritDamage;
+    const pointsForMax = neededRate / rateGain;
     if (laughPoint <= pointsForMax) {
         finalRate += (laughPoint * rateGain);
     } else {
         finalRate = 100;
         finalDamage += ((laughPoint - pointsForMax) * damageGain);
     }
-
     const ahaDmgIncrease = (5 * laughPoint) / (240 + laughPoint);
 
-    const finalSpeedGyu = (parseFloat(document.getElementById('speed_gyu_L').value) || 0) + gyuBuff;
-    const fsSparkle = (parseFloat(document.getElementById('speed_sparkle').value) || 0) + sparkleBuff;
-    const fsHg = (parseFloat(document.getElementById('speed_hg').value) || 0) + hgBuffVal;
+    // 5. 파티원 최종 속도 계산
+    const inputGyu = parseFloat(document.getElementById('speed_gyu_L').value) || 0;
+    const inputSparkle = parseFloat(document.getElementById('speed_sparkle').value) || 0;
+    const inputHg = parseFloat(document.getElementById('speed_hg').value) || 0;
 
-    let extraJoy = 0;
-    if (finalSpeedGyu > 160) extraJoy = (finalSpeedGyu - 160) * 2;
+    const fsGyu = inputGyu + gyuBuff;
+    const fsSparkle = inputSparkle + sparkleBuff;
+    const fsHg = inputHg + hgBuffVal;
 
-    let speeds = [finalSpeedGyu, fsSparkle, fsHg].sort((a, b) => b - a);
+    // 아하 최종 속도 (80 + 1위/5 + 2위/10 + 3위/20)
+    let speeds = [fsGyu, fsSparkle, fsHg].sort((a, b) => b - a);
     const fsAha = 80 + (speeds[0] / 5) + (speeds[1] / 10) + (speeds[2] / 20);
 
+    // 6. 결과 UI 업데이트
     document.getElementById('resRate').innerText = finalRate.toFixed(1) + '%';
     document.getElementById('resDamage').innerText = finalDamage.toFixed(1) + '%';
-    document.getElementById('resSpeedGyuL').innerText = finalSpeedGyu.toFixed(1);
-    document.getElementById('resJoy').innerText = extraJoy.toFixed(1) + '%';
+    document.getElementById('resSpeedGyuL').innerText = fsGyu.toFixed(1);
+    document.getElementById('resJoy').innerText = (fsGyu > 160 ? (fsGyu - 160) * 2 : 0).toFixed(1) + '%';
     document.getElementById('resAhaDmg').innerText = (ahaDmgIncrease * 100).toFixed(2) + '%';
 
-    document.getElementById('ps_gyu').innerText = finalSpeedGyu.toFixed(1);
+    document.getElementById('ps_gyu').innerText = fsGyu.toFixed(1);
     document.getElementById('ps_sparkle').innerText = fsSparkle.toFixed(1);
     document.getElementById('ps_hg').innerText = fsHg.toFixed(1);
     document.getElementById('ps_aha').innerText = fsAha.toFixed(1);
 }
 
+// 초기화 실행
 calculate();
 </script>
 </body>
