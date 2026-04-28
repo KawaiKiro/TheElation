@@ -393,7 +393,7 @@ function calculate() {
 
     // 아하 최종 속도 (80 + 1위/5 + 2위/10 + 3위/20)
     let speeds = [fsGyu, fsSparkle, fsHg].sort((a, b) => b - a);
-    const fsAha = 80 + (speeds[0] / 5) + (speeds[1] / 10) + (speeds[2] / 20);
+    const fsAha = 80 + (speeds[0] / 20) + (speeds[1] / 10) + (speeds[2] / 5);
 
     // 6. 결과 UI 업데이트
     document.getElementById('resRate').innerText = finalRate.toFixed(1) + '%';
